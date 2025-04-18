@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+  fake-cryptominer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fake-cryptominer
+    restart: unless-stopped
+    environment:
+      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
+      - BEACON_INTERVAL=30
+      - ALGO=ethash
+      - WALLET=0x0000000000000000000000000000000000000000
+      - WORKER=sectest-worker
+      - THREADS=2
+      - USE_GPU=false
+      - INTENSITY=5
+    # Uncomment for any additional volume mappings if needed
+    # volumes:
+    #   - ./logs:/home/miner/.mining/logs
+    # Network settings to simulate real mining behavior
+    # But not actually connect to mining pools
+    networks:
+      - miner-net
+
+  # Optional monitoring container to observe the miner's behavior
+  monitoring:
+    image: prom/node-exporter:latest
+    container_name: miner-monitoring
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    depends_on:
+      - fake-cryptominer
+    networks:
+      - miner-net
+
+networks:
+  miner-net:
+    driver: bridge

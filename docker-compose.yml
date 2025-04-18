@@ -8,7 +8,7 @@ services:
     container_name: fake-cryptominer
     restart: unless-stopped
     environment:
-      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
+      - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/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
       - BEACON_INTERVAL=30
       - ALGO=ethash
       - WALLET=0x0000000000000000000000000000000000000000

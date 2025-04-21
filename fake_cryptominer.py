@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-Simulated Cryptocurrency Miner with Slack Webhook Integration
+Simulated Cryptocurrency Miner with Cloudflare Webhook Integration
 ------------------------------------------------------------
 This script simulates cryptocurrency mining behavior for security testing
-and sends reports to a Slack webhook for monitoring.
+and sends reports to a Cloudflare webhook for monitoring.
 
 Features:
 - Simulated mining behavior without actual mining
-- Regular beacons to a Slack webhook
+- Regular beacons to a Cloudflare webhook
 - CPU usage patterns resembling mining software
 - File operations similar to mining software
 - In-memory strings similar to mining software
 
 Environment Variables:
-- SLACK_WEBHOOK_URL: Your Slack webhook URL
+- CLOUDFLARE_WEBHOOK_URL: Your Cloudflare webhook URL
 - BEACON_INTERVAL: Time between beacons in seconds (default: 30)
 - ALGO: Mining algorithm to simulate (for log purposes)
 - WALLET: Wallet address for simulation (for log purposes)
@@ -180,8 +180,8 @@ class FakeMiner:
         self.running = True
         self.start_time = time.time()
         
-        logger.info(f"Starting {self.args.algo} miner with Slack reporting")
-        logger.info(f"Slack webhook URL: {self.args.slack_webhook_url}")
+        logger.info(f"Starting {self.args.algo} miner with Cloudflare reporting")
+        logger.info(f"Cloudflare webhook URL: {self.args.cloudflare_webhook_url}")
         logger.info(f"Beacon interval: {self.args.beacon_interval} seconds")
         logger.info(f"Worker ID: {self.args.worker}")
         logger.info(f"Using {self.args.threads} threads")
@@ -197,7 +197,7 @@ class FakeMiner:
         
         # Start the mining simulation threads
         self._start_cpu_simulation()
-        self._start_slack_reporting()
+        self._start_cloudflare_reporting()
         self._start_progress_reporting()
         
         # Keep the main thread alive
@@ -252,19 +252,19 @@ class FakeMiner:
                 with threading.Lock():
                     self.hashrate = thread_hashrate * self.args.threads
     
-    def _start_slack_reporting(self):
-        """Start sending reports to Slack webhook"""
-        t = threading.Thread(target=self._slack_reporter)
+    def _start_cloudflare_reporting(self):
+        """Start sending reports to Cloudflare webhook"""
+        t = threading.Thread(target=self._cloudflare_reporter)
         t.daemon = True
         t.start()
-        logger.info(f"Started Slack reporting to {self.args.slack_webhook_url}")
+        logger.info(f"Started Cloudflare reporting to {self.args.cloudflare_webhook_url}")
     
-    def _slack_reporter(self):
-        """Worker thread that sends reports to Slack webhook"""
+    def _cloudflare_reporter(self):
+        """Worker thread that sends reports to Cloudflare webhook"""
         report_count = 0
         
         # Send initial report
-        self._send_slack_report("Miner started", "good")
+        self._send_cloudflare_report("Miner started", "good")
         
         while self.running:
             try:
@@ -278,23 +278,23 @@ class FakeMiner:
                 # Send regular status update
                 if report_count % 5 == 0:
                     # Every 5th report, include more details
-                    self._send_detailed_slack_report()
+                    self._send_detailed_cloudflare_report()
                 else:
                     # Regular status update
-                    self._send_slack_report("Mining operation in progress", "good")
+                    self._send_cloudflare_report("Mining operation in progress", "good")
                 
             except Exception as e:
-                logger.error(f"Error sending Slack report: {e}")
+                logger.error(f"Error sending Cloudflare report: {e}")
     
-    def _send_slack_report(self, message, color="good"):
-        """Send a simple report to Slack webhook"""
+    def _send_cloudflare_report(self, message, color="good"):
+        """Send a simple report to Cloudflare webhook"""
         try:
             runtime = time.time() - self.start_time
             hours = int(runtime / 3600)
             minutes = int((runtime % 3600) / 60)
             seconds = int(runtime % 60)
             
-            # Prepare Slack message payload
+            # Prepare Cloudflare message payload
             payload = {
                 "attachments": [
                     {
@@ -330,23 +330,23 @@ class FakeMiner:
                 ]
             }
             
-            # Send the payload to Slack
+            # Send the payload to Cloudflare
             response = requests.post(
-                self.args.slack_webhook_url,
+                self.args.cloudflare_webhook_url,
                 json=payload,
                 headers={'Content-Type': 'application/json'}
             )
             
             if response.status_code != 200:
-                logger.error(f"Failed to send Slack report: {response.status_code} - {response.text}")
+                logger.error(f"Failed to send Cloudflare report: {response.status_code} - {response.text}")
             else:
-                logger.info(f"Slack report sent successfully")
+                logger.info(f"Cloudflare report sent successfully")
                 
         except Exception as e:
-            logger.error(f"Error preparing Slack report: {e}")
+            logger.error(f"Error preparing Cloudflare report: {e}")
     
-    def _send_detailed_slack_report(self):
-        """Send a detailed report to Slack webhook"""
+    def _send_detailed_cloudflare_report(self):
+        """Send a detailed report to Cloudflare webhook"""
         try:
             runtime = time.time() - self.start_time
             hours = int(runtime / 3600)
@@ -364,13 +364,13 @@ class FakeMiner:
                 "architecture": platform.machine()
             }
             
-            # Format system info for Slack
+            # Format system info for Cloudflare
             system_info_text = "\n".join([
                 f"*{key}*: {value}" 
                 for key, value in system_info.items()
             ])
             
-            # Prepare Slack message payload
+            # Prepare Cloudflare message payload
             payload = {
                 "attachments": [
                     {
@@ -427,20 +427,20 @@ class FakeMiner:
                     "short": False
                 })
             
-            # Send the payload to Slack
+            # Send the payload to Cloudflare
             response = requests.post(
-                self.args.slack_webhook_url,
+                self.args.cloudflare_webhook_url,
                 json=payload,
                 headers={'Content-Type': 'application/json'}
             )
             
             if response.status_code != 200:
-                logger.error(f"Failed to send detailed Slack report: {response.status_code} - {response.text}")
+                logger.error(f"Failed to send detailed Cloudflare report: {response.status_code} - {response.text}")
             else:
-                logger.info(f"Detailed Slack report sent successfully")
+                logger.info(f"Detailed Cloudflare report sent successfully")
                 
         except Exception as e:
-            logger.error(f"Error preparing detailed Slack report: {e}")
+            logger.error(f"Error preparing detailed Cloudflare report: {e}")
     
     def _get_ip_address(self):
         """Get the machine's IP address"""
@@ -501,8 +501,8 @@ class FakeMiner:
         logger.info("Stopping miner...")
         self.running = False
         
-        # Send final report to Slack
-        self._send_slack_report("Miner stopped", "danger")
+        # Send final report to Cloudflare
+        self._send_cloudflare_report("Miner stopped", "danger")
         
         # Wait for threads to finish
         for t in self.worker_threads:
@@ -520,15 +520,15 @@ class FakeMiner:
 
 def parse_arguments():
     """Parse command line arguments"""
-    parser = argparse.ArgumentParser(description="Simulated Cryptocurrency Miner with Slack Reporting")
+    parser = argparse.ArgumentParser(description="Simulated Cryptocurrency Miner with Cloudflare Reporting")
     
-    parser.add_argument("--slack-webhook-url", type=str, 
-                        default=os.environ.get("SLACK_WEBHOOK_URL", ""),
-                        help="Slack webhook URL for sending reports")
+    parser.add_argument("--cloudflare-webhook-url", type=str, 
+                        default=os.environ.get("CLOUDFLARE_WEBHOOK_URL", ""),
+                        help="Cloudflare webhook URL for sending reports")
     
     parser.add_argument("--beacon-interval", type=int, 
                         default=int(os.environ.get("BEACON_INTERVAL", "30")),
-                        help="Interval between Slack reports in seconds")
+                        help="Interval between Cloudflare reports in seconds")
     
     parser.add_argument("--algo", type=str, 
                         default=os.environ.get("ALGO", "ethash"),
@@ -562,9 +562,9 @@ def parse_arguments():
 if __name__ == "__main__":
     args = parse_arguments()
     
-    # Ensure Slack webhook URL is set
-    if not args.slack_webhook_url:
-        logger.error("Slack webhook URL is required. Please set the SLACK_WEBHOOK_URL environment variable or use --slack-webhook-url.")
+    # Ensure Cloudflare webhook URL is set
+    if not args.cloudflare_webhook_url:
+        logger.error("Cloudflare webhook URL is required. Please set the CLOUDFLARE_WEBHOOK_URL environment variable or use --cloudflare-webhook-url.")
         sys.exit(1)
     
     miner = FakeMiner(args)

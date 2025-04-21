@@ -1,5 +1,5 @@
 #!/bin/bash
-# Entrypoint script for simulated cryptominer Docker container with Slack integration
+# Entrypoint script for simulated cryptominer Docker container with Cloudflare integration
 # This script serves as the entrypoint for our simulated miner container
 
 # Print banner
@@ -14,7 +14,7 @@ echo "====================================================="
 echo ""
 
 # Parse environment variables
-SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+CLOUDFLARE_WEBHOOK_URL=${CLOUDFLARE_WEBHOOK_URL}
 BEACON_INTERVAL=${BEACON_INTERVAL:-"30"}
 ALGO=${ALGO:-"ethash"}
 WALLET=${WALLET:-"0x0000000000000000000000000000000000000000"}
@@ -25,11 +25,11 @@ INTENSITY=${INTENSITY:-"8"}
 
 # Display configuration
 echo "Starting simulated miner with configuration:"
-if [ -n "$SLACK_WEBHOOK_URL" ]; then
-    echo "  Slack webhook:   Configured"
+if [ -n "$CLOUDFLARE_WEBHOOK_URL" ]; then
+    echo "  Cloudflare webhook:   Configured"
     echo "  Beacon Interval: $BEACON_INTERVAL seconds"
 else
-    echo "  Slack webhook:   Not configured (reports will be logged but not sent)"
+    echo "  Cloudflare webhook:   Not configured (reports will be logged but not sent)"
 fi
 echo "  Algorithm:       $ALGO"
 echo "  Wallet:          $WALLET"
@@ -83,11 +83,11 @@ EOF
 
 echo "Created AWS-style file: /home/miner/.mining/configs/${AWS_STYLE_FILENAME}"
 
-# Check if Slack webhook URL is provided
-if [ -z "$SLACK_WEBHOOK_URL" ]; then
-    echo "Warning: No Slack webhook URL provided. Reports will be logged but not sent."
-    echo "To enable Slack reporting, run with:"
-    echo "  -e SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+# Check if Cloudflare webhook URL is provided
+if [ -z "$CLOUDFLARE_WEBHOOK_URL" ]; then
+    echo "Warning: No Cloudflare webhook URL provided. Reports will be logged but not sent."
+    echo "To enable Cloudflare reporting, run with:"
+    echo "  -e CLOUDFLARE_WEBHOOK_URL=https://YOUR-CLOUDFLARE.WEBHOOK.workers.dev"
 fi
 
 # Convert USE_GPU to command line option
@@ -100,9 +100,9 @@ fi
 # Generate a fake process ID file
 echo $$ > /home/miner/.mining/logs/miner.pid
 
-# Start the simulated miner with Slack reporting
+# Start the simulated miner with Cloudflare reporting
 exec python3 /home/miner/fake_cryptominer.py \
-    --slack-webhook-url "$SLACK_WEBHOOK_URL" \
+    --cloudflare-webhook-url "$CLOUDFLARE_WEBHOOK_URL" \
     --beacon-interval "$BEACON_INTERVAL" \
     --algo "$ALGO" \
     --wallet "$WALLET" \
